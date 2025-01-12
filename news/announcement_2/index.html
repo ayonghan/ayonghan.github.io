@@ -135,6 +135,15 @@
     <li>Finally, the controller model is  responsible for deciding the action, it is a small, linear model trained with the Covariance-Matrix Adaptation Evolution Strategy.
 </li>
 </ul>
+    
+      <div>
+  $$
+  \begin{aligned}
+  Q^*_{M'} (s,a) &= Q^*_M(s, a) - \Phi(s) \\
+  V^*_{M'} (s,a) &= V^*_M(s, a) - \Phi(s)
+  \end{aligned}
+  $$
+  </div>
 
 
   </article>
@@ -171,14 +180,26 @@
   <script src="/assets/js/common.js"></script>
 
     <!-- MathJax -->
-  <script type="text/javascript">
-    window.MathJax = {
-      tex: {
-        tags: 'ams'
-      }
-    };
-  </script>
-  <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+  <script defer type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
   <script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 
     

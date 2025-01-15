@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Ashma Yonghang | World Models.</title>
+    <title>Ashma Yonghang | Variational Inference</title>
     <meta name="author" content="Ashma Yonghang" />
     <meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
 " />
@@ -101,7 +101,7 @@
 <div class="post">
 
   <header class="post-header">
-    <h1 class="post-title">World Models</h1>
+    <h1 class="post-title">Variational Inference</h1>
     <p class="post-meta">May 11, 2024</p>
     <p class="post-tags">
       <a href="/blog/2024"> <i class="fas fa-calendar fa-sm"></i> 2024 </a>
@@ -135,38 +135,80 @@
 
     <h2 id="variational-posterior">Variational Posterior q<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
     <p>Variational posterior approximating the true posterior distribution $p(s_{1:T} \mid o_{1:T}, a_{1:T})$ is expressed as:
-    $$q(s_{1:T} \mid o_{1:T}, a_{1:T}) = \prod_{t=1}^T q(s_t \mid o_t, a_{<t})$$ 
+    $$q(s_{1:T} \mid o_{1:T}, a_{1:T}) = \prod_{t=1}^T q(s_t \mid o_t, a_{\lt t})$$ 
     </p>
       
     <h2 id="tractability">Tractability<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
-    <h2 id="why-q-is-easier-to-tract">Why q is easier to tract?<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
-    <p>This factorization assumes that each latent variable $s_t​$ depends only on local observations $o_t$​ and preceding actions $a_{<t}$​, rather than the entire sequence of states. In the marginal likelihood or prior distribution, as in equation 1, one has to do the integral over all possible state values (probabilities of all states leading to an observation from o_{1:T}), which is infinite as the state value is continuous.
+    <h3 id="why-q-is-easier-to-tract">Why q is easier to tract?<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h3>
+    <p>This factorization assumes that each latent variable $s_t​$ depends only on local observations $o_t$​ and preceding actions $a_{\lt t}$​, rather than the entire sequence of states. In the marginal likelihood or prior distribution, as in equation 1, one has to do the integral over all possible state values (probabilities of all states leading to an observation from o_{1:T}), which is infinite as the state value is continuous.
     </p>
-        
-<h4>Three parts</h4>
-<figure>
-  <img src="/assets/img/blog2/1_world_models.png" 
-       alt="VAE, RNN and Controller from world models, 2018, Ha &amp; Schmidhuber" />
-  <figcaption>
-    VAE, RNN, and Controller from <em>World Models</em>, 2018, Ha &amp; Schmidhuber
-  </figcaption>
-</figure>
-<ul>
-    <li>VAE as a Vision model to encode a high dimensional 2D image at a time frame into a low dimensional latent vector[spatial compression]. </li>
-    <li>RNN model to make future prediction by compressing image data frames over time [temporal compression]. RNN needs to output stochastic prediction (in the form probability distribution p(z) instead of z) as complex environments are stochastic in nature. It is followed by a mixture density network (MDN) to estimate p(z) as a mixture of gaussian distributions.
-</li>
-    <li>Finally, the controller model is  responsible for deciding the action, it is a small, linear model trained with the Covariance-Matrix Adaptation Evolution Strategy.
-</li>
-</ul>
+    <h3 id="why-p-is-difficult-to-tract">Why p is difficult to tract?<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h3>
+    <h4 id="P-when-$s_t$-is-continuous">P when $s_t$ is continuous<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h4>
+    <p>Equation 1 involves integrating over $s_{1:T}$​, which consists of the T latent variables $s_1, s_2, \dots, s_T$​.
+    $$\int ds_{1:T} = \int_{\mathbb{R}^n} ds_1 \int_{\mathbb{R}^n} ds_2 \cdots \int_{\mathbb{R}^n} ds_T$$
     
-      <div>
-  $$
-  \begin{aligned}
-  Q^*_{M'} (s,a) &= Q^*_M(s, a) - \Phi(s) \\
-  V^*_{M'} (s,a) &= V^*_M(s, a) - \Phi(s)
-  \end{aligned}
-  $$
-  </div>
+    The sequence $s_{1:T}$​ has a finite length T, but The integral aggregates over all possible continuous values of $s_1, s_2, \dots$ leading to a continuous T-fold integral.
+    </p>
+      
+    <h4 id="p-when-$s_t$-is-discrete">P when $s_t$ is discrete<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h4>
+    <p>If $s_t$​ takes on discrete values \{s_t^{(1)}, s_t^{(2)}, \dots, s_t^{(K)}\}, where K is the number of discrete states for $s_t$​, the marginal likelihood becomes:
+    $$.\sum_{s_{1:T}} = \sum_{s_1} \sum_{s_2} \cdots \sum_{s_T}$$
+    Each summation is over all possible values of $s_t$​. For categorical $s_t$​ might be with K states and T variables, we need to do a sum over $K^T$ combinations of $s_{1:T}$.
+    <i>Note:</i> In discrete models (e.g., Hidden Markov Models), the marginal likelihood summation can often be computed efficiently using algorithms like the forward algorithm, avoiding an explicit sum over all $K^T$ possibilities.</p>
+
+    <h4 id="this-is-why">This is why<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h4>
+    <p>Marginal P is computationally intractable as exact integration over continuous spaces or $K^T$ summations over high dimensional discrete state with K values is rarely feasible. Computation of marginal likelihood using analytical methods is not possible, numerical methods are needed. 
+    <i>Note:</i> This is why techniques like variational inference or Monte Carlo sampling are used to approximate the marginal likelihood.
+    Before proceeding with understanding expressions of ELBO, apart from about importance sampling, we will also need to know Jensen's equality.
+    </p>
+
+    <h2 id="jensen’s-inequality">Jensen’s Inequality<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+    <p>Jensen's inequality states that for a convex (or concave) function f(x), and a random variable X:
+    $$f(\mathbb{E}[X]) \leq \mathbb{E}$$
+    If f(x) is concave, the inequality is flipped: 
+    $$ \ln \mathbb{E}[x] \geq \mathbb{E}[\ln x] $$
+    </p>
+
+    <h2 id="deriving-the-variational-bound-elbo">Deriving the Variational Bound ELBO<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+    <p>In equation 1, we introduce a variational approximation $q(s_{1:T} \mid o_{1:T}, a_{1:T})$ to the true posterior $p(s_{1:T} \mid o_{1:T}, a_{1:T})$ using importance sampling:
+
+    $$ p(o_{1:T} \mid a_{1:T}) = \int q(s_{1:T} \mid o_{1:T}, a_{1:T}) \frac{p(o_{1:T}, s_{1:T} \mid a_{1:T})}{q(s_{1:T} \mid o_{1:T}, a_{1:T})} \, ds_{1:T} $$
+    Taking the logarithm:
+    $$ \ln p(o_{1:T} \mid a_{1:T}) = \ln \int q(s_{1:T} \mid o_{1:T}, a_{1:T}) \frac{p(o_{1:T}, s_{1:T} \mid a_{1:T})}{q(s_{1:T} \mid o_{1:T}, a_{1:T})} \, ds_{1:T} $$
+    Since the logarithm is concave, we can apply Jensen's inequality as:
+    $$\ln(\mathbb{E}[X]) \geq \mathbb{E}[\ln(X)]$$ so that
+    $$ \ln p(o_{1:T} \mid a_{1:T}) \geq \int q(s_{1:T} \mid o_{1:T}, a_{1:T}) \ln \frac{p(o_{1:T}, s_{1:T} \mid a_{1:T})}{q(s_{1:T} \mid o_{1:T}, a_{1:T})} \, ds_{1:T} $$
+    This forms the Evidence Lower Bound (ELBO):
+    $$
+    \ln p(o_{1:T} \mid a_{1:T}) \geq \mathbb{E}_{q(s_{1:T} \mid o_{1:T}, a_{1:T})} 
+    \left[ \ln p(o_{1:T}, s_{1:T} \mid a_{1:T}) - \ln q(s_{1:T} \mid o_{1:T}, a_{1:T}) \right]
+    $$  
+    Equation of joint likelihood:
+    $$ p(o_{1:T}, s_{1:T} \mid a_{1:T}) = \prod_{t=1}^T p(o_t \mid s_t) p(s_t \mid s_{t-1}, a_{t-1}) $$
+    Using equation of joint likelihood p(o1:T​,s1:T​∣a1:T​) into this ELBO:
+    $$\ln p(o_{1:T} \mid a_{1:T}) \geq \mathbb{E}_{q(s_{1:T} \mid o_{1:T}, a_{1:T})} \left[ \sum_{t=1}^T \ln p(o_t \mid s_t) + \ln p(s_t \mid s_{t-1}, a_{t-1}) - \ln q(s_t \mid o_t, a_{\lt t}) \right].$$</p>
+
+    <h2 id="elbo-components">ELBO Components<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+    <p>We can now split the ELBO into two main components: Reconstruction Term:
+    measures how well the model reconstructs the observations given the latent states and KL Divergence measures how much the variational posterior $q(s_t \mid o_t, a_{\;t t})$ deviates from the prior dynamics $p(s_t \mid s_{t-1}, a_{t-1})$.
+    Final ELBO can be written as:
+    $$ \mathcal{L} = \underbrace{\sum_{t=1}^T \mathbb{E}_{q(s_t \mid o_t)} [\ln p(o_t \mid s_t)]}_{\text{Reconstruction Loss}} - \underbrace{\sum_{t=1}^T D_{\mathrm{KL}} \left( q(s_t \mid o_t, a_{\lt t}) \parallel p(s_t \mid s_{t-1}, a_{t-1}) \right)}_{\text{Complexity}} $$.
+    The loss function becomes:
+    \mathcal{L} = -\text{ELBO} = \text{Reconstruction Loss} + \text{Complexity Penalty}
+    </p>
+
+    <h2 id="non-differentiability-problem">Non-differentiability Problem: Stochastic Sampling from variational posterior<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+    <p>While maximizing the ELBO if q is a complex function of parameters (e.g., neural network outputs), gradients for optimization can become problematic due to the non-differentiable nature of sampling operations in q. 
+    How? To optimize the parameters $\phi$ of $q(s_{1:T} \mid o_{1:T}, a_{1:T})$, we compute gradients of \mathcal{L} with respect to $\phi$. The expectation is over q(s_{1:T} \mid o_{1:T}, a_{1:T})), meaning we must sample s1:Ts_{1:T}s1:T​ to estimate this expectation. But sampling $s_{1:T} \sim q(s_{1:T} \mid o_{1:T}, a_{1:T})$ is stochastic and hence non-differentiable - the stochasticity in sampling disrupts the computation of gradients via backpropagation.
+    </p>
+
+    <h2 id="solution-reparameterization-trick">Solution: Reparameterization Trick<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+    <p>It re-expresses the stochastic sampling as a deterministic transformation of a fixed random variable. Instead of directly sampling $s_t$​ from $q(s_t \mid o_t, a_{\lt t})$, It introduces a Noise $\epsilon$ by sampling from a fixed distribution (e.g., $\mathcal{N}(0, 1)$ - we move the randomness to $\epsilon$ that is independent of learnable parameters $\phi$ making the computation of $\nabla_\phi$ tractable.
+    In the deterministic transformation as below gradients $\nabla_\phi$​ can flow through $\mu_\phi$​ and $\sigma_\phi$​ via backpropagation:
+    $$.s_t = \mu_\phi + \sigma_\phi \cdot \epsilon \sim \mathcal{N}(0, 1)$$
+    </p>
+    
+        
 
 
   </article>

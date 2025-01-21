@@ -190,16 +190,22 @@
     </p>
       
     <h2 id="visitation-probability-in-continuous-setting">Visitation Probability in Continuous Setting<a hidden class="anchor" aria-hidden="true" href="#visitation-probability-in-continuous-setting">#</a></h2>
-    <p>In tabular settings, computing visitation probability is manageable because the states are discrete, and we can compute expected number of times state s′s's′ will be visited starting from state sss and following policy π\piπ.number of times state s′s's′ will be visited starting from state sss and following policy π\piπ. for each pair of states directly. However, in continuous spaces, representing and estimating this matrix becomes computationally infeasible due to infinite possible states.
+    <p>In tabular settings, computing visitation probability is manageable because the states are discrete, and we can compute expected number of times state $s′$ will be visited starting from state $s$ and following policy $\pi$ for each pair of states directly. </p>
+     <p>However, in continuous spaces, representing and estimating this matrix becomes 
+      computationally infeasible due to infinite possible states.
     </p>
     
     <h4 id="workaround">Workaround<a hidden class="anchor" aria-hidden="true" href="#workaround">#</a></h4>
-    <p>Instead of directly estimating visitation probabilities (or their discounted sums), the idea is to learn state representations in a latent space where the inner product between two state embeddings approximates the visitation probability. Learning a latent space allows the model to generalize across unseen states by leveraging the learned structure of the environment.</p>
+    <p>Instead of directly estimating visitation probabilities (or their discounted sums), the idea is to learn state representations in a latent space where the inner product between two state embeddings approximates the visitation probability.</p>
+    <p>Learning a latent space allows the model to generalize across unseen states by leveraging the learned structure of the environment.</p>
     
 
     <h2 id="mathematics">Mathematics<a hidden class="anchor" aria-hidden="true" href="#mathematics">#</a></h2>
-    <p>Self-supervised actor critic algorithm is used. Similarity function f between two representations is a parametric function - parameterized by inner product of representations of data, /phi(.) and /psi(.) map 
-data to $\mathcal{L_{2}}$ normalized vectors of dimension d. f is a critic function, $/phi$ and $/psi$ are contrastive representations of x and y respectively.
+    <p>Self-supervised actor critic algorithm is used. Similarity function f between two representations is a parametric function - parameterized by inner product of representations of data $$
+f(x, y) = \phi(x)^{\top} \psi(y)
+$$
+In this expression, $\phi(.)$ and $\psi(.)$ map 
+data to $\mathcal{L_{2}}$ normalized vectors of dimension d. f is a critic function, $\phi$ and $\psi$ are contrastive representations of x and y respectively.
     </p>
 
     <p>Bayes-optimal critic of f is denotes as f* and given by: $$exp(f*(x,y)) = \frac{p(y \mid x)}{p(y)c(x)}$$
@@ -214,7 +220,7 @@ data to $\mathcal{L_{2}}$ normalized vectors of dimension d. f is a critic funct
     <h2 id="discounted-state-occupancy-measure">Discounted State Occupancy Measure<a hidden class="anchor" aria-hidden="true" href="#deriving-the-variational-bound-elbo">#</a></h2>
     <p>quantifies the "importance" or "likelihood" of being in a particular state 
 $𝑠t+$  under a specific policy, while considering the discounted nature of rewards (or contributions) over time.
-      $$p_{\pi}(s_{t+} \mid s, a) \coloneqq (1 - \gamma) \sum_{t=1}^{\infty} \gamma^{t-1} p_{\pi}^{t}(s_{t+} \mid s, a)$$
+      $$p_{\pi}(s_{t+} \mid s, a) = (1 - \gamma) \sum_{t=1}^{\infty} \gamma^{t-1} p_{\pi}^{t}(s_{t+} \mid s, a)$$
 
 
       The normalization factor $(1 - \gamma)$ ensures that the discounted sum is properly normalized across time i.e. it adds up to 1.Without this factor, the infinite summation could diverge or be incorrectly scaled depending on the choice of γ. This factor arises naturally in discounted sums and ensures consistency with the total probability.
@@ -224,12 +230,12 @@ $𝑠t+$  under a specific policy, while considering the discounted nature of re
     <p>Prior works like contrastive RL and c-learning also aim to learn representations whose inner products correspond to the likelihoods of reaching future states.
 But it uses Monte Carlo estimator which has high variance and is sample inefficient as compared to TD methods. Expression for monte carlo info-NCE estimator:
 $$
-\text{L_{MCInfoNCE}(f)} = \mathbb{E}_{(s, a) \sim p(s, a), s_{t+}^{(1)} \sim p_{\pi}(s_{t+} \mid s, a), s_{t+}^{(2:N)} \sim p(s_{t+})} \left[  \log \log(\frac{\exp(f(s, a, s_{t+}^{(1)}))}{\sum_{i=1}^{N} \exp(f(s, a, s_{t+}^{(i)}))}) \right]
+\text{L}_{\text{MCInfoNCE}}(f) = \mathbb{E}_{(s, a) \sim p(s, a), s_{t+}^{(1)} \sim p_{\pi}(s_{t+} \mid s, a), s_{t+}^{(2:N)} \sim p(s_{t+})} \left[  \log \log(\frac{\exp(f(s, a, s_{t+}^{(1)}))}{\sum_{i=1}^{N} \exp(f(s, a, s_{t+}^{(i)}))}) \right]
 $$
 
       Optimal critic $f^{\star}$ is expressed as:
       $$
-\exp(f^{\star}(s, a, s_{t+})) = \frac{p^{\pi}(s_{t+} \mid s, a)]{\, p(s_{t+}) \, c(s, a)}
+\exp(f^{\star}(s, a, s_{t+})) = \frac{p^{\pi}(s_{t+} \mid s, a)}{p(s_{t+}) \, c(s, a)}
 $$
 </p>
 
